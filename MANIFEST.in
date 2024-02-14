@@ -1,3 +1,5 @@
+include README.md
+include LICENSE
 include version.txt
 include requirements.txt
 global-include *.py

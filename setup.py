@@ -12,6 +12,7 @@ HERE = pathlib.Path(__file__).parent
 
 # The text of the README file
 README = (HERE / "README.md").read_text()
+LICENSE = (HERE / "LICENSE").read_text()
 
 with open(HERE / 'requirements.txt', 'r') as f:
     install_reqs = [
@@ -53,6 +54,7 @@ setup(
     description="algorithms for process mining and data mining on event sequences",
     long_description=README,
     long_description_content_type="text/markdown",
+    license=LICENSE,
     url="https://github.com/shs-it/prolothar-common",
     author="Boris Wiegand",
     author_email="boris.wiegand@stahl-holding-saar.de",

@@ -16,6 +16,8 @@ jobs:
     steps:
     - name: checkout repository
       uses: actions/checkout@v3
+    - name: Setup Graphviz
+      uses: ts-graphviz/setup-graphviz@v2
     - name: setup python version
       uses: actions/setup-python@v5
       with:

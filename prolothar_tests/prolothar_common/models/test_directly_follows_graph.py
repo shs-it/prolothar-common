@@ -53,7 +53,6 @@ class TestDirectlyFollowsGraph(unittest.TestCase):
         self.dfg.add_count('A', 'B')
         self.dfg.add_count('A', 'C')
         self.dfg.add_count('A', 'C')
-        self.dfg.plot(filepath='temp')
 
         self.assertEqual(self.dfg, self.dfg.filter_edges_by_local_frequency(0.3))
 
