@@ -1,0 +1,7 @@
+coverage
+mypy
+Cython
+twine
+hypothesis
+safety
+ray[default]

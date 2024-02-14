@@ -1,0 +1,9 @@
+@RELATION "TestDataset"
+
+@ATTRIBUTE "color" {"blue","red"}
+@ATTRIBUTE "size" NUMERIC
+@ATTRIBUTE "sequence" {"[]","[A,B]"}
+
+@DATA
+"red",100,"[]"
+"blue",42,"[A,B]"

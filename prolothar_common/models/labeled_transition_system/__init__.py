@@ -1,0 +1,1 @@
+from prolothar_common.models.labeled_transition_system.labeled_transition_system import LabeledTransitionSystem

@@ -1,0 +1,11 @@
+include version.txt
+include requirements.txt
+global-include *.py
+global-include *.pyi
+global-include *.pyx
+global-include *.pxd
+global-include *.cpp
+global-include *.h
+global-exclude *.pyc
+global-exclude *.pyd
+prune prolothar_tests

@@ -1,0 +1,1 @@
+cpdef list all_splits_of_size_k(tuple t, int k)

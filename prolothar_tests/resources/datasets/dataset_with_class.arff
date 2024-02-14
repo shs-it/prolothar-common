@@ -1,0 +1,9 @@
+@RELATION "TestDataset"
+
+@ATTRIBUTE "color" {"blue","red"}
+@ATTRIBUTE "size" NUMERIC
+@ATTRIBUTE "class" {"A","B"}
+
+@DATA
+"red",100,"A"
+"blue",42,"B"

@@ -1,0 +1,35 @@
+'on':
+  push:
+    branches:
+    - main
+    - develop
+    - feature/**
+jobs:
+  tests:
+    name: Execute Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python_version:
+        - '3.11'
+        - '3.12'
+    steps:
+    - name: checkout repository
+      uses: actions/checkout@v3
+    - name: setup python version
+      uses: actions/setup-python@v5
+      with:
+        version: ${{ matrix.python_version }}
+    - name: install dev requirements
+      run: python -m pip install -r requirements-dev.txt
+    - name: install requirements
+      run: python -m pip install -r requirements.txt
+    - name: run tests and compute coverage
+      run: |
+        python -m coverage run --branch --source=./prolothar_common -m unittest discover -v
+        python -m coverage xml -i
+    - name: upload coverage file
+      uses: actions/upload-artifact@v3
+      with:
+        name: testcoverage
+        path: coverage.xml

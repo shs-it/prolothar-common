@@ -1,0 +1,84 @@
+image: python:3.10.2-buster
+
+variables:
+  http_proxy: "http://wwwproxy.dillinger.de:3128"
+  https_proxy: "http://wwwproxy.dillinger.de:3128"
+  no_proxy: "nexus.int.shsservices.de"
+  projectPath: "/builds/KI/DataScience/processmining/prolothar-common"
+  repository: "pypi-alternative"
+
+stages:
+  - test
+  - deploy
+
+test:
+  stage: test
+  tags:
+    - docker
+  only:
+    - develop
+    - master
+  script:
+    - apt-get update && apt-get install -y graphviz xvfb
+    - Xvfb :99 & export DISPLAY=:99
+    - python -m pip install
+      -i http://nexus.int.shsservices.de/repository/${repository}/simple
+      --extra-index-url http://nexus.int.shsservices.de/repository/ki-python-releases/simple
+      --trusted-host nexus.int.shsservices.de
+      -r ${projectPath}/requirements-dev.txt
+    - python -m pip install
+      -i http://nexus.int.shsservices.de/repository/${repository}/simple
+      --extra-index-url http://nexus.int.shsservices.de/repository/ki-python-releases/simple
+      --trusted-host nexus.int.shsservices.de
+      -r ${projectPath}/requirements.txt
+    - export PYTHONPATH=${projectPath}
+    - make cython
+    - cd ${projectPath}
+    - make test
+  artifacts:
+    paths:
+      - coverage.xml
+
+deploy:sonar:
+  stage: deploy
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
+    entrypoint: [""]
+  tags:
+    - docker
+  only:
+    - develop
+  cache:
+    key: "${CI_JOB_NAME}"
+    paths:
+      - .sonar/cache
+  variables:
+    SONAR_HOST_URL: http://lin333.dillinger.de:9000
+  script:
+    - sonar-scanner
+  dependencies:
+    - test
+
+deploy:nexus:
+  stage: deploy
+  tags:
+    - docker
+  only:
+    - master
+  script:
+    - python -m pip install
+      -i http://nexus.int.shsservices.de/repository/${repository}/simple
+      --extra-index-url http://nexus.int.shsservices.de/repository/ki-python-releases/simple
+      --trusted-host nexus.int.shsservices.de
+      -r ${projectPath}/requirements-dev.txt
+    - python -m pip install
+      -i http://nexus.int.shsservices.de/repository/${repository}/simple
+      --extra-index-url http://nexus.int.shsservices.de/repository/ki-python-releases/simple
+      --trusted-host nexus.int.shsservices.de
+      -r ${projectPath}/requirements.txt
+    - make package
+    - export CURL_CA_BUNDLE=${SHS_SSL_CERTIFICATE}
+    - export REQUESTS_CA_BUNDLE=${SHS_SSL_CERTIFICATE}
+    - twine upload --repository-url https://nexus.int.shsservices.de/repository/ki-python-releases/ -u ${CI_NEXUS_USER_KI} -p ${CI_NEXUS_PASSWORD_KI} dist/*
+  dependencies:
+    - test
