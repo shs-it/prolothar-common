@@ -1,4 +1,4 @@
-'''
+"""
     This file is part of Prolothar-Common (More Info: https://github.com/shs-it/prolothar-common).
 
     Prolothar-Common is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
 
     You should have received a copy of the GNU General Public License
     along with Prolothar-Common. If not, see <https://www.gnu.org/licenses/>.
-'''
+"""
 
 from prolothar_common.models.diintgraph.graph cimport Graph
 

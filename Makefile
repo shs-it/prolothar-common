@@ -13,10 +13,10 @@ check_requirements :
 	safety check -r requirements.txt
 
 package :
-	python setup.py sdist bdist_wheel
+	python -m build
 
 clean_package :
 	rm -R dist build prolothar_common.egg-info
 
 publish :
-	twine upload --skip-existing --verbose -u ${PYPI_USER} -p ${secrets.PYPI_PASSWORD} dist/*
+	twine upload --skip-existing --verbose dist/*

@@ -34,10 +34,6 @@ These instructions will get you a copy of the project up and running on your loc
 make test
 ```
 
-### Git Branching Model
-
-We use [Git-flow](https://danielkummer.github.io/git-flow-cheatsheet/index.html) as our branching model.
-
 ### Deployment
 
 ```bash

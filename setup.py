@@ -61,7 +61,6 @@ setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.10",
-        "Topic :: Process Mining"
     ],
     packages=["prolothar_common"],
     include_package_data=True,

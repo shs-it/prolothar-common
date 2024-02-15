@@ -1,6 +1,7 @@
 coverage
 mypy
 Cython
+build
 twine
 hypothesis
 safety
