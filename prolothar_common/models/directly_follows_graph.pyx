@@ -23,29 +23,25 @@ from graphviz import Digraph
 
 from prolothar_common.models.eventlog import EventLog, Trace, Event
 import prolothar_common.gviz_utils as gviz_utils
-from prolothar_common.models.dfg.node import Node
-from prolothar_common.models.dfg.edge import Edge
 from prolothar_common.experiments.statistics import Statistics
 
 cdef class DirectlyFollowsGraph():
-    """directly-follows graph of a EventLog. Nodes in the graph correspond to
-    activities and there is a edge from A to B if A is directly-followed by B.
-    """
+
     __DEFAULT_ZERO_EDGE = Edge(None, None, 0)
-    cdef public dict edges
-    cdef public dict nodes
 
     def __init__(self):
         self.edges = {}
         self.nodes = {}
 
-    def add_node(self, activity: str):
-        """adds a node with a given activity to this graph"""
+    cpdef add_node(self, str activity):
         if activity not in self.nodes:
-            self.nodes[activity] = Node(activity=activity, edges=[],
-                                        ingoing_edges=[])
+            self.nodes[activity] = Node(
+                activity, 
+                edges=[], 
+                ingoing_edges=[]
+            )
 
-    def remove_node(self, activity: str, create_connections=False):
+    cpdef remove_node(self, str activity, bint create_connections=False):
         """removes a node from the graph
         Args:
             activity:
@@ -60,15 +56,22 @@ cdef class DirectlyFollowsGraph():
                     self.add_count(predecessor, ancestor)
 
         node = self.nodes.pop(activity)
-        edge_keys_to_delete = set()
+        cdef set edge_keys_to_delete = set()
         for edge in node.edges:
-            edge_keys_to_delete.add((edge.start.activity, edge.end.activity))
+            edge_keys_to_delete.add((
+                (<Edge>edge).start.activity, 
+                (<Edge>edge).end.activity
+            ))
         for edge in node.ingoing_edges:
-            edge_keys_to_delete.add((edge.start.activity, edge.end.activity))
+            edge_keys_to_delete.add((
+                (<Edge>edge).start.activity,
+                (<Edge>edge).end.activity
+            ))
         for edge_key in edge_keys_to_delete:
-            self.remove_edge(edge_key)
+            self.remove_edge(<tuple>edge_key)
 
-    def remove_edge(self, edge_key: Tuple[str,str]) -> Edge:
+    cpdef Edge remove_edge(self, tuple edge_key):
+        cdef Edge edge
         if edge_key in self.edges:
             edge = self.edges.pop(edge_key)
             edge.start.edges.remove(edge)
@@ -76,7 +79,7 @@ cdef class DirectlyFollowsGraph():
             return edge
         return None
 
-    def add_count(self, start_activity: str, end_activity: str, count=1):
+    cpdef add_count(self, str start_activity, str end_activity, int count=1):
         self.add_node(start_activity)
         self.add_node(end_activity)
         edge = (start_activity, end_activity)
@@ -87,13 +90,13 @@ cdef class DirectlyFollowsGraph():
             self.nodes[end_activity].ingoing_edges.append(self.edges[edge])
         self.edges[edge].count += count
 
-    def get_nr_of_nodes(self):
+    cpdef int get_nr_of_nodes(self):
         return len(self.nodes)
 
     def get_nodes(self) -> Iterable[Node]:
         return self.nodes.values()
 
-    def get_nr_of_edges(self):
+    cpdef int get_nr_of_edges(self):
         return len(self.edges)
 
     def get_edges(self) -> Iterable[Edge]:
@@ -208,7 +211,6 @@ cdef class DirectlyFollowsGraph():
         i = 0
         visited = set()
         current = self.nodes[start_activity]
-        current.sort_nr = i
         visited.add(current.activity)
         i += 1
         while current.activity != end_activity:
@@ -251,23 +253,31 @@ cdef class DirectlyFollowsGraph():
         else:
             return '1.0'
 
-    def filter_edges_by_local_frequency(
-            self, min_frequency: float, keep_at_least_one_outgoing_edge: bool = False):
-        filtered_dfg = self.copy()
-        for edge in list(filtered_dfg.edges.keys()):
-            filtered_dfg.remove_edge(edge)
+    cpdef filter_edges_by_local_frequency(
+            self, float min_frequency, bint keep_at_least_one_outgoing_edge = False):
+        cdef DirectlyFollowsGraph filtered_dfg = self.copy()
+        for edge_key in list(filtered_dfg.edges.keys()):
+            filtered_dfg.remove_edge(<tuple>edge_key)
+        cdef Node node
+        cdef Edge edge
         for node in self.nodes.values():
-            total_count_of_node = sum(map(lambda e: e.count, node.edges))
+            total_count_of_node = 0
+            for edge in node.edges:
+                total_count_of_node += edge.count
             for edge in node.edges:
                 if total_count_of_node > 0 \
                 and edge.count / total_count_of_node >= min_frequency:
                     filtered_dfg.add_count(edge.start.activity,
                                            edge.end.activity, count=edge.count)
+        cdef Node unfiltered_node
         for node in filtered_dfg.get_nodes():
             if not node.edges and keep_at_least_one_outgoing_edge:
                 unfiltered_node = self.nodes[node.activity]
                 if unfiltered_node.edges:
-                    max_edge = max(unfiltered_node.edges, key=lambda e: e.count)
+                    max_edge = DirectlyFollowsGraph.__DEFAULT_ZERO_EDGE 
+                    for edge in unfiltered_node.edges:
+                        if edge.count > max_edge.count:
+                            max_edge = edge
                     filtered_dfg.add_count(max_edge.start.activity,
                                            max_edge.end.activity, count=max_edge.count)
         return filtered_dfg
@@ -276,23 +286,24 @@ cdef class DirectlyFollowsGraph():
         """removes all edges in this directly-follows-graph which have a
         count less than 'min_count'
         """
-        filtered_dfg = self.copy()
-        for edge in list(filtered_dfg.edges.keys()):
-            filtered_dfg.remove_edge(edge)
+        cdef DirectlyFollowsGraph filtered_dfg = self.copy()
+        for edge_key in list(filtered_dfg.edges.keys()):
+            filtered_dfg.remove_edge(<tuple>edge_key)
+        cdef Edge edge
         for edge in self.edges.values():
             if edge.count >= min_count:
                 filtered_dfg.add_count(edge.start.activity,
                                        edge.end.activity, count=edge.count)
         return filtered_dfg
 
-    def compute_shortest_path(
-            self, start_activity: str,
-            end_activity: str,
-            forbidden_edges: Iterable[Tuple[str,str]] = None) -> List[str]:
+    cpdef list compute_shortest_path(self, str start_activity, str end_activity, object forbidden_edges = None):
         """Uses breadth-first-search algorithm for computing the shortest path (
         i.e. the path with the minimal number of edges) between two activity
         nodes in the DFG. If no path is found, an empty list is returned. If
-        start = end then also an empty list is returned
+        start = end then also an empty list is returned.
+
+        forbidden_edges: Iterable[Tuple[str,str]]
+        result: List[str]
         """
         #https://codereview.stackexchange.com/questions/193410/breadth-first-search-implementation-in-python-3-to-find-path-between-two-given-n
         if start_activity not in self.nodes:
@@ -302,13 +313,17 @@ cdef class DirectlyFollowsGraph():
             return []
 
         cdef list removed_edges = []
-        if forbidden_edges:
-            for edge in forbidden_edges:
-                removed_edges.append(self.remove_edge(edge))
+        if forbidden_edges is not None:
+            for edge_key in forbidden_edges:
+                removed_edges.append(self.remove_edge(<tuple>edge_key))
 
         cdef set visited = {start_activity}
         queue = deque([(start_activity, [])])
 
+        cdef str current_activity
+        cdef list path
+        cdef str neighbor
+        cdef Edge edge
         try:
             while queue:
                 current_activity, path = queue.popleft()
@@ -328,14 +343,14 @@ cdef class DirectlyFollowsGraph():
                 self.add_count(edge.start.activity, edge.end.activity,
                                count=edge.count)
 
-    def compute_shortest_path_to_one_of(
-            self, start_activity: str,
-            end_activities: Set[str]) -> List[str]:
+    cpdef list compute_shortest_path_to_one_of(self, str start_activity, set end_activities):
         """Uses breadth-first-search algorithm for computing the shortest path (
         i.e. the path with the minimal number of edges) between a start activity
         and a set of end activties of nodes in the DFG.
         If no path is found, an empty list is returned. If
         start = end then also an empty list is returned
+
+        result: List[str]
         """
         #https://codereview.stackexchange.com/questions/193410/breadth-first-search-implementation-in-python-3-to-find-path-between-two-given-n
         if start_activity not in self.nodes:
@@ -344,9 +359,11 @@ cdef class DirectlyFollowsGraph():
         if start_activity in end_activities:
             return []
 
-        visited = {start_activity}
+        cdef set visited = {start_activity}
         queue = deque([(start_activity, [])])
 
+        cdef str current_activity
+        cdef list path
         while queue:
             current_activity, path = queue.popleft()
             visited.add(current_activity)
@@ -354,41 +371,47 @@ cdef class DirectlyFollowsGraph():
             for neighbor in sorted(self.get_following_activities(current_activity)):
                 if neighbor in end_activities:
                     return path + [current_activity, neighbor]
-                if not neighbor in visited:
+                if neighbor not in visited:
                     queue.append((neighbor, path + [current_activity]))
                     visited.add(neighbor)
 
         # no path found
         return []
 
-    def compute_indegree(self, activity: str) -> int:
-        return len(self.nodes[activity].ingoing_edges)
+    cpdef int compute_indegree(self, str activity):
+        return len((<Node>self.nodes[activity]).ingoing_edges)
 
-    def get_preceeding_activities(self, activity: str) -> List[str]:
-        return [edge.start.activity for edge in self.nodes[activity].ingoing_edges]
+    cpdef list get_preceeding_activities(self, str activity):
+        cdef list result = []
+        for edge in (<Node>self.nodes[activity]).ingoing_edges:
+            result.append((<Edge>edge).start.activity)
+        return result
 
-    def get_following_activities(self, activity: str) -> List[str]:
-        return [edge.end.activity for edge in self.nodes[activity].edges]
+    cpdef list get_following_activities(self, str activity):
+        cdef list result = []
+        for edge in (<Node>self.nodes[activity]).edges:
+            result.append((<Edge>edge).end.activity)
+        return result
 
-    def copy(self) -> 'DirectlyFollowsGraph':
-        copy = DirectlyFollowsGraph()
+    cpdef DirectlyFollowsGraph copy(self):
+        cdef DirectlyFollowsGraph copy = DirectlyFollowsGraph()
         copy.join(self)
         return copy
 
-    def join(self, other: 'DirectlyFollowsGraph'):
+    cpdef join(self, DirectlyFollowsGraph other):
         """adds all nodes and edges from "other" to this DirectlyFollowsGraph
         """
         for node in other.nodes.values():
-            self.add_node(node.activity)
+            self.add_node((<Node>node).activity)
         for edge_key, edge in other.edges.items():
             self.edges[edge_key] = Edge(
                     self.nodes[edge.start.activity],
                     self.nodes[edge.end.activity],
                     edge.count)
         for edge_key, edge in other.edges.items():
-            self.nodes[edge.start.activity].edges.append(self.edges[edge_key])
+            (<Node>self.nodes[(<Edge>edge).start.activity]).edges.append(self.edges[edge_key])
         for edge_key, edge in other.edges.items():
-            self.nodes[edge.end.activity].ingoing_edges.append(self.edges[edge_key])
+            (<Node>self.nodes[(<Edge>edge).end.activity]).ingoing_edges.append(self.edges[edge_key])
 
     def read_counts_from_log(self, log: EventLog):
         for trace in log.traces:
@@ -476,16 +499,17 @@ cdef class DirectlyFollowsGraph():
                     next_activities.append(next_activity)
         return connected_component
 
-    def get_reachable_activities(self, start_activity: str) -> Set[str]:
-        """returns the set of reachable nodes (activities) starting from
+    cpdef set get_reachable_activities(self, str start_activity):
+        """
+        returns the set of reachable nodes (activities) starting from
         the given activity
         """
-        reachable_activities = set()
-        next_activities = set(self.get_following_activities(start_activity))
+        cdef set reachable_activities = set()
+        cdef set next_activities = set(self.get_following_activities(start_activity))
         while next_activities:
             activity = next_activities.pop()
             reachable_activities.add(activity)
-            for following_activity in self.get_following_activities(activity):
+            for following_activity in self.get_following_activities(<str>activity):
                 if following_activity not in reachable_activities:
                     next_activities.add(following_activity)
         return reachable_activities
@@ -506,8 +530,7 @@ cdef class DirectlyFollowsGraph():
 
     def get_count(self, a: str, b: str) -> int:
         edge_key = (a,b)
-        return self.edges.get(
-                edge_key, DirectlyFollowsGraph.__DEFAULT_ZERO_EDGE).count
+        return self.edges.get(edge_key, DirectlyFollowsGraph.__DEFAULT_ZERO_EDGE).count
 
     def remove_not_allowed_start_activities(
             self, allowed_start_activities: Set[str]):

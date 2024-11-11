@@ -4,7 +4,7 @@ import unittest
 
 from prolothar_common.models.dataset import Dataset
 from prolothar_common.models.dataset.instance import Instance
-from prolothar_common.models.dataset.transformer.quantile_based_discretization import QuantileBasedDiscretization
+from prolothar_common.models.dataset.transformer.trainable_q_based_discretization import TrainableQuantileBasedDiscretization
 
 class TestTraininableQuantileBasedDiscretization(unittest.TestCase):
 
@@ -14,34 +14,20 @@ class TestTraininableQuantileBasedDiscretization(unittest.TestCase):
         for i, size in enumerate(sizes):
             dataset.add_instance(Instance(i, {'size': size}))
 
-        transformed_dataset = QuantileBasedDiscretization(3).transform(dataset)
+        transformer = TrainableQuantileBasedDiscretization.train(dataset, 3)
+        transformed_dataset = transformer.transform(dataset)
 
         expected_dataset = Dataset(['size'],[])
         expected_sizes = [
             '(0.999, 5.0]', '(0.999, 5.0]', '(22.0, 54.0]', '(5.0, 22.0]',
-            '(22.0, 54.0]', '(5.0, 22.0]', '(0.999, 5.0]', '(0.999, 5.0]',
+            '(22.0, 54.0]', '(5.0, 22.0]', 
+            '(0.999, 5.0]', 
+            '(0.999, 5.0]',
             '(0.999, 5.0]', '(5.0, 22.0]', '(22.0, 54.0]', '(22.0, 54.0]',
             '(5.0, 22.0]']
         for i, size in enumerate(expected_sizes):
             expected_dataset.add_instance(Instance(i, {'size': size}))
-
         self.assertEqual(expected_dataset, transformed_dataset)
-
-    def test_transform_nr_of_unique_values_equals_nr_of_bins(self):
-        dataset = Dataset([],['size'])
-        sizes = [1, 1, 2, 2, 3, 1, 3]
-        for i, size in enumerate(sizes):
-            dataset.add_instance(Instance(i, {'size': size}))
-
-        transformed_dataset = QuantileBasedDiscretization(3).transform(dataset)
-        expected_dataset = Dataset(['size'],[])
-        expected_sizes = [
-            '1', '1', '2', '2', '3', '1', '3']
-        for i, size in enumerate(expected_sizes):
-            expected_dataset.add_instance(Instance(i, {'size': size}))
-
-        self.assertEqual(expected_dataset, transformed_dataset)
-
 
 if __name__ == '__main__':
     unittest.main()

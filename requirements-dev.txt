@@ -4,5 +4,5 @@ Cython
 build
 twine
 hypothesis
-safety
-ray[default]
+safety==3.2.10
+ray[default]==2.38.0

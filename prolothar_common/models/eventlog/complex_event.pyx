@@ -20,7 +20,7 @@ from prolothar_common.models.eventlog.event cimport Event
 cdef class ComplexEvent(Event):
     """a complex event that exists of a list of subevents or children
     """
-    def __init__(self, activity_name, list children,
+    def __init__(self, str activity_name, list children,
                  dict attributes = None, str transition_id = None):
         super().__init__(activity_name, attributes=attributes, transition_id=transition_id)
         if not children:

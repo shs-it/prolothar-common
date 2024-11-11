@@ -36,9 +36,28 @@ make test
 
 ### Deployment
 
+1. Change the version in version.txt
+2. Build and publish the package on pypi by
+
 ```bash
-make clean_package || make package && make publish
+make clean_package
+make package && make publish
 ```
+
+3. Create and push a tag for this version by
+
+```bash
+git tag -a $(cat version.txt) -m "describe this version"
+git push --all && git push --tags
+```
+
+### Devcontainer
+
+There is a decontainer definition in this project, which helps you to set up your environment.
+At Stahl-Holding-Saar, we are behind a corporate proxy and cannot install dependencies from PyPi directly.
+I yet have not found a stable solution to set the PIP_INDEX_URL and PIP_TRUSTED_HOST variables dynamically. 
+In the current Dockerfile, I hardcoded the values, so you have to adapt them. 
+If you know a solution to this problem, please contact me. 
 
 ## Versioning
 

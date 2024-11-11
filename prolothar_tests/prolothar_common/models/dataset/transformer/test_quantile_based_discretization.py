@@ -18,9 +18,18 @@ class TestQuantileBasedDiscretization(unittest.TestCase):
 
         expected_dataset = Dataset(['size'],[])
         expected_sizes = [
-            '(0.999, 5.0]', '(0.999, 5.0]', '(22.0, 54.0]', '(5.0, 22.0]',
-            '(22.0, 54.0]', '(5.0, 22.0]', '(0.999, 5.0]', '(0.999, 5.0]',
-            '(0.999, 5.0]', '(5.0, 22.0]', '(22.0, 54.0]', '(22.0, 54.0]',
+            '[1, 5.0]', 
+            '[1, 5.0]', 
+            '(22.0, 54]',
+            '(5.0, 22.0]',
+            '(22.0, 54]', 
+            '(5.0, 22.0]', 
+            '[1, 5.0]', 
+            '[1, 5.0]',
+            '[1, 5.0]', 
+            '(5.0, 22.0]', 
+            '(22.0, 54]', 
+            '(22.0, 54]',
             '(5.0, 22.0]']
         for i, size in enumerate(expected_sizes):
             expected_dataset.add_instance(Instance(i, {'size': size}))

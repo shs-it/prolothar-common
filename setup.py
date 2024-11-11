@@ -39,6 +39,8 @@ if os.path.exists('prolothar_common/levenshtein.pyx'):
         make_extension_from_pyx("prolothar_common/models/eventlog/complex_event.pyx"),
         make_extension_from_pyx("prolothar_common/models/eventlog/trace.pyx"),
         make_extension_from_pyx("prolothar_common/models/directly_follows_graph.pyx"),
+        make_extension_from_pyx("prolothar_common/models/dfg/node.pyx"),
+        make_extension_from_pyx("prolothar_common/models/dfg/edge.pyx"),
         make_extension_from_pyx("prolothar_common/models/diintgraph/directed_int_graph.pyx"),
         make_extension_from_pyx("prolothar_common/experiments/statistics.pyx"),
         make_extension_from_pyx("prolothar_common/collections/list_utils.pyx"),

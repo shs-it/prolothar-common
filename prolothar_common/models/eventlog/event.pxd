@@ -16,7 +16,7 @@
 '''
 
 cdef class Event:
-    cdef public activity_name
+    cdef public str activity_name
     cdef public dict attributes
     cdef public str transition_id
 

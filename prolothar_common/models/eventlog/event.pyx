@@ -18,7 +18,7 @@
 from frozendict import frozendict
 
 cdef class Event():
-    def __init__(self, activity_name, dict attributes = None,
+    def __init__(self, str activity_name, dict attributes = None,
                  str transition_id = None):
         self.activity_name = activity_name
         self.attributes = attributes if attributes is not None else {}

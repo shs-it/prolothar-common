@@ -33,6 +33,6 @@ def plot_graph(graph, view=True, filepath=None, filetype='pdf',
     if view:
         if not ipython_available:
             raise ModuleNotFoundError('IPython not available')
-        display(SVG(graph._repr_svg_()))
+        display(SVG(graph._repr_image_svg_xml()))
 
     return graph.source

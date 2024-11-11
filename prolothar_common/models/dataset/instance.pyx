@@ -15,10 +15,8 @@
     along with Prolothar-Common. If not, see <https://www.gnu.org/licenses/>.
 '''
 
-from typing import Hashable, Dict, Any, List, Iterable, Tuple, Union, FrozenSet, Set
+from typing import Hashable, Dict, Any, List, Iterable, Tuple, Union, Set
 from collections import Counter
-
-from multiprocessing import Manager
 
 cdef class Instance:
     """Instance of a dataset"""
@@ -44,9 +42,6 @@ cdef class Instance:
         removes a feature from this instance
         """
         self.features.pop(attribute)
-
-    def load_to_shared_memory(self, manager: Manager):
-        self.features = manager.dict(self.features)
 
     def __getitem__(self, feature_name: str) -> Any:
         return self.features[feature_name]

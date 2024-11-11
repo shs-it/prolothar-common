@@ -89,27 +89,6 @@ class TestDataset(unittest.TestCase):
 
         self.assertEqual(dataset, reloaded_dataset)
 
-    def test_load_into_shared_memory(self):
-        dataset = Dataset(['color'],['size'])
-        for i in range(5):
-            features = {'color': 'red' if i == 0 else 'blue', 'size': i * 10}
-            dataset.add_instance(Instance(i, features))
-        with Manager() as manager:
-            dataset.load_into_shared_memory(manager)
-            queue = Queue()
-            p1 = Process(target=count_color, args=(dataset, 'red', queue))
-            p2 = Process(target=count_color, args=(dataset, 'blue', queue))
-            p1.start()
-            p2.start()
-            p1.join()
-            p2.join()
-            result_dict = {}
-            color, count = queue.get()
-            result_dict[color] = count
-            color, count = queue.get()
-            result_dict[color] = count
-            self.assertDictEqual({'red': 1, 'blue': 4}, result_dict)
-
     def test_group_by_categorical_attribute(self):
         dataset = Dataset(['color'],['size'])
         dataset.add_instance(

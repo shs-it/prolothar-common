@@ -17,7 +17,7 @@
 
 cdef class Instance:
     cdef instance_id
-    cdef features
+    cdef dict features
 
     cpdef Instance copy(self)
     cpdef remove_feature(self, str attribute)

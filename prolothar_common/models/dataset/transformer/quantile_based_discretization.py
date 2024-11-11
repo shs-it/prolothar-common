@@ -15,7 +15,7 @@
     along with Prolothar-Common. If not, see <https://www.gnu.org/licenses/>.
 '''
 
-import pandas as pd
+from statistics import quantiles
 
 from prolothar_common.models.dataset.transformer.dataset_transformer import DatasetTransformer
 
@@ -37,12 +37,24 @@ class QuantileBasedDiscretization(DatasetTransformer):
 
     def __transform_attribute(self, attribute_name: str, dataset: Dataset):
         values = [instance[attribute_name] for instance in dataset]
-        if len(dataset.get_attribute_by_name(
-                attribute_name).get_unique_values()) > self.__nr_of_bins:
+        if len(dataset.get_attribute_by_name(attribute_name).get_unique_values()) > self.__nr_of_bins:
+            cut_points = quantiles(values, n=self.__nr_of_bins, method='inclusive')
+            min_value = min(values)
+            max_value = max(values)
             transformed_values = [
-                str(discretized_value) for discretized_value
-                in pd.qcut(values, self.__nr_of_bins, duplicates='drop')]
+                self.__get_label_for_value(value, cut_points, min_value, max_value)
+                for value in values
+            ]
         else:
             transformed_values = [str(value) for value in values]
         dataset.remove_attribute(attribute_name)
         dataset.add_categorical_attribute(attribute_name, transformed_values)
+
+    def __get_label_for_value(self, value: float, cut_points: list[float], min_value: float, max_value: float) -> str:
+        if value <= cut_points[0]:
+            return f'[{min_value}, {cut_points[0]}]'
+        for a,b in zip(cut_points, cut_points[1:]):
+            if a < value <= b:
+                return f'({a}, {b}]'
+        else:
+            return f'({cut_points[-1]}, {max_value}]'

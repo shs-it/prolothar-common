@@ -3,6 +3,7 @@ build
 dist
 *.exe
 *.o
+*.so
 *.egg-info
 
 ### PYTHON ###
@@ -49,3 +50,4 @@ experiments/**/results*
 *.cpp
 !graph.cpp
 catboost_info
+.env

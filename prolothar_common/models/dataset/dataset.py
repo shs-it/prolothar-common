@@ -18,7 +18,6 @@
 from itertools import chain
 from typing import Iterable, Iterator, Tuple, List, Dict
 from random import Random
-from multiprocessing import Manager
 import csv
 import pandas as pd
 
@@ -304,11 +303,6 @@ class Dataset():
 
     def __eq__(self, other) -> bool:
         return other.export_to_arff() == self.export_to_arff()
-
-    def load_into_shared_memory(self, manager: Manager):
-        self.__attributes = manager.dict(self.__attributes)
-        for instance in self:
-            instance.load_to_shared_memory(manager)
 
     @staticmethod
     def create_from_arff(arff: str) -> 'Dataset':

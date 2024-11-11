@@ -364,8 +364,7 @@ class TestDirectlyFollowsGraph(unittest.TestCase):
         self.dfg.add_count('7', '8', count=1)
         self.dfg.add_count('8', '6', count=1)
 
-        dot = self.dfg.plot(random_walk_alignment=('0','6',1000),
-                            view=False)
+        dot = self.dfg.plot(random_walk_alignment=('0','6',1000), view=False).strip()
 
         with open('prolothar_tests/resources/dfg_plot_with_random_walk_subgraphs.txt', 'r') as f:
             expected_dot = f.read()
@@ -387,7 +386,7 @@ class TestDirectlyFollowsGraph(unittest.TestCase):
         self.dfg.add_count('7', '8', count=1)
         self.dfg.add_count('8', '6', count=1)
 
-        dot = self.dfg.plot(use_topological_order=True, view=False)
+        dot = self.dfg.plot(use_topological_order=True, view=False).strip()
 
         with open('prolothar_tests/resources/dfg_plot_with_topological_order.txt', 'r') as f:
             expected_dot = f.read()

@@ -136,7 +136,7 @@ class TestDataPetriNet(unittest.TestCase):
             '\ttransition_t1 -> place_end\n'
             '}')
         self.assertEqual(expected_dot,
-                         create_workflow_net().plot(view=False))
+                         create_workflow_net().plot(view=False).strip())
 
     def test_prune_one_transition(self):
         net = DataPetriNet()

@@ -32,7 +32,7 @@ class TestPrefixTree(unittest.TestCase):
            '\t.1 -> ".1.0" [label=1]\n'
            '\t".1.0" [label="D | 1" shape=rectangle]\n'
            '}')
-        dot_code = tree.plot(view=False)
+        dot_code = tree.plot(view=False).strip()
         self.assertEqual(expected_dot_code, dot_code)
 
     def test_create_tree_should_terminate(self):
