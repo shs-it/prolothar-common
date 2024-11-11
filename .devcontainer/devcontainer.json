@@ -1,0 +1,25 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/python
+{
+	"name": "Prolothar-Common",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"remoteUser": "nonroot",
+	"mounts": [
+    	"type=bind,source=${localEnv:HOME}/.ssh,target=/home/nonroot/.ssh,readonly"
+	],	
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-python.python",
+				"ktnrg45.vscode-cython"
+			],
+			"settings": {
+				"terminal.integrated.shell.*": "/bin/bash"
+			}
+		}
+	}
+}
