@@ -6,3 +6,4 @@ twine
 hypothesis
 safety==3.2.10
 ray[default]==2.38.0
+ipython

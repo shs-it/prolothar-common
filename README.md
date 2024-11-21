@@ -36,15 +36,31 @@ make test
 
 ### Deployment
 
+Optional requirement: Create a .pypirc file in the project root directory with your pypi authentication token:
+```
+[pypi]
+username = __token__
+password = pypi-AgEIcH...
+```
+
 1. Change the version in version.txt
-2. Build and publish the package on pypi by
+2. Build the package
 
 ```bash
 make clean_package
-make package && make publish
+make package
 ```
 
-3. Create and push a tag for this version by
+3. Deploy the version to Pypi:
+```bash
+ make publish
+ ```
+or 
+```bash
+twine upload --skip-existing --verbose --config .pypirc dist/*
+```
+
+4. Create and push a tag for this version by
 
 ```bash
 git tag -a $(cat version.txt) -m "describe this version"
